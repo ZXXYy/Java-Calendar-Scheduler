@@ -79,9 +79,10 @@ public abstract class Calendar extends JComponent {
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
                 if(e.getClickCount() == 2) {
-                	if (!checkCalendarEventDoubleClick(e.getPoint())) {
-                        checkCalendarEmptyDoubleClick(e.getPoint());
-                    }
+                	Point p = e.getPoint();
+                	Point location = new Point(clickLocXToShowLoc(p.getX()),clickLocYToShowLoc(p.getY()));
+                	LocalDate date = getDateFromDay(pixelToDay(p.getX()));
+                    fireCalendarDoubleClick(LocalDateTime.of(date, pixelToTime(p.getY())), location, dayWidth, timeScale);
                 	
                 }
                 else if(e.getClickCount()==1) {
@@ -93,95 +94,28 @@ public abstract class Calendar extends JComponent {
     }
 
     protected abstract boolean dateInRange(LocalDate date);
-    
-    private boolean checkDoubleClick(Point p) {
-    	if(doubleClicked) {
-    		doubleClicked = false;
-    		//fireClearWidget();
-    		return true;
-    	}
-    	return false;
-    }
-    
-    private boolean checkCalendarEventDoubleClick(Point p) {
-        double x0, x1, y0, y1;
-        for (CalendarEvent event : events) {
-            if (!dateInRange(event.getDate())) continue;
-
-            x0 = dayToPixel(event.getDate().getDayOfWeek());
-            y0 = timeToPixel(event.getStart());
-            x1 = dayToPixel(event.getDate().getDayOfWeek()) + dayWidth;
-            y1 = timeToPixel(event.getEnd());
-
-            if (p.getX() >= x0 && p.getX() <= x1 && p.getY() >= y0 && p.getY() <= y1) {
-                fireCalendarEventDoubleClick(event);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean checkCalendarEmptyDoubleClick(Point p) {
-        final double x0 = dayToPixel(getStartDay());
-        final double x1 = dayToPixel(getEndDay()) + dayWidth;
-        final double y0 = timeToPixel(START_TIME);
-        final double y1 = timeToPixel(END_TIME);
-        Point location = new Point(clickLocXToShowLoc(p.getX()),clickLocYToShowLoc(p.getY()));
-        if (p.getX() >= x0 && p.getX() <= x1 && p.getY() >= y0 && p.getY() <= y1) {
-            LocalDate date = getDateFromDay(pixelToDay(p.getX()));
-            fireCalendarEmptyDoubleClick(LocalDateTime.of(date, pixelToTime(p.getY())), location, dayWidth, timeScale);
-            return true;
-        }
-        return false;
-    }
 
     protected abstract LocalDate getDateFromDay(DayOfWeek day);
 
-    // CalendarEventClick methods
-
-    public void addCalendarEventDoubleClickListener(CalendarEventDoubleClickListener l) {
-        listenerList.add(CalendarEventDoubleClickListener.class, l);
-    }
-
-    public void removeCalendarEventDoubleClickListener(CalendarEventDoubleClickListener l) {
-        listenerList.remove(CalendarEventDoubleClickListener.class, l);
-    }
-
-    // Notify all listeners that have registered interest for
-    // notification on this event type.
-    private void fireCalendarEventDoubleClick(CalendarEvent calendarEvent) {
-        // Guaranteed to return a non-null array
-        Object[] listeners = listenerList.getListenerList();
-        // Process the listeners last to first, notifying
-        // those that are interested in this event
-        CalendarEventClickEvent calendarEventClickEvent;
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == CalendarEventDoubleClickListener.class) {
-                calendarEventClickEvent = new CalendarEventClickEvent(this, calendarEvent);
-                ((CalendarEventDoubleClickListener) listeners[i + 1]).calendarEventDoubleClick(calendarEventClickEvent);
-            }
-        }
-    }
-
     // CalendarEmptyDoubleClick methods
 
-    public void addCalendarEmptyDoubleClickListener(CalendarEmptyDoubleClickListener l) {
-        listenerList.add(CalendarEmptyDoubleClickListener.class, l);
+    public void addCalendarDoubleClickListener(CalendarDoubleClickListener l) {
+        listenerList.add(CalendarDoubleClickListener.class, l);
     }
 
-    public void removeCalendarEmptyDoubleClickListener(CalendarEmptyDoubleClickListener l) {
-        listenerList.remove(CalendarEmptyDoubleClickListener.class, l);
+    public void removeCalendarDoubleClickListener(CalendarDoubleClickListener l) {
+        listenerList.remove(CalendarDoubleClickListener.class, l);
     }
 
-    private void fireCalendarEmptyDoubleClick(LocalDateTime dateTime, Point p, double dayWidth, double timeScale) {
+    private void fireCalendarDoubleClick(LocalDateTime dateTime, Point p, double dayWidth, double timeScale) {
     	doubleClicked = true;
     	doubleClickLoc = new Point(p);
         Object[] listeners = listenerList.getListenerList();
-        CalendarEmptyClickEvent calendarEmptyClickEvent;
+        CalendarDoubleClickEvent calendarDoubleClickEvent;
         for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == CalendarEmptyDoubleClickListener.class) {
-                calendarEmptyClickEvent = new CalendarEmptyClickEvent(this, dateTime, p, dayWidth, timeScale);
-                ((CalendarEmptyDoubleClickListener) listeners[i + 1]).calendarEmptyDoubleClick(calendarEmptyClickEvent);
+            if (listeners[i] == CalendarDoubleClickListener.class) {
+            	calendarDoubleClickEvent = new CalendarDoubleClickEvent(this, dateTime, p, dayWidth, timeScale);
+                ((CalendarDoubleClickListener) listeners[i + 1]).calendarDoubleClick(calendarDoubleClickEvent);
             }
         }
     }
@@ -211,32 +145,7 @@ public abstract class Calendar extends JComponent {
             }
         }
     }
-    
-    public void addClearWidgetListener(ClearWidgetListener l) {
-        listenerList.add(ClearWidgetListener.class, l);
-    }
-
-    public void removeClearWidgetListener(ClearWidgetListener l) {
-        listenerList.remove(ClearWidgetListener.class, l);
-    }
-    private void fireClearWidget(EventWidget widget) {
-    	// Guaranteed to return a non-null array
-        Object[] listeners = listenerList.getListenerList();
-        // Process the listeners last to first, notifying
-        // those that are interested in this event
-        EventWidget eventWidget;
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == ClearWidgetListener.class) {
-            	eventWidget = widget;
-                ((ClearWidgetListener) listeners[i + 1]).clearWidget(eventWidget);
-            }
-        }
-    }
-    
-    
-    
-    
-    
+ 
     
     private void calculateScaleVars() {
         int width = getWidth();

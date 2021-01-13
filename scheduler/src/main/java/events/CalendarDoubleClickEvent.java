@@ -3,12 +3,12 @@ package events;
 import java.awt.*;
 import java.time.LocalDateTime;
 
-public class CalendarEmptyClickEvent extends AWTEvent {
+public class CalendarDoubleClickEvent extends AWTEvent {
     private LocalDateTime dateTime;
     private Point p;
     private double dayWidth;
     private double timeScale;
-    public CalendarEmptyClickEvent(Object source, LocalDateTime dateTime, Point p, double dayWidth, double timeScale) {
+    public CalendarDoubleClickEvent(Object source, LocalDateTime dateTime, Point p, double dayWidth, double timeScale) {
         super(source, 0);
         this.dateTime = dateTime;
         this.p = p;

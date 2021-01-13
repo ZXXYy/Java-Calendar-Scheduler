@@ -23,51 +23,51 @@ public class WeekCalendarTest {
 
         WeekCalendar cal = new WeekCalendar(events);
 
-        cal.addCalendarEventDoubleClickListener(e -> System.out.println(e.getCalendarEvent()));
-        cal.addCalendarEmptyDoubleClickListener(e -> {
-        	LocalDateTime localDateTime = e.getDateTime();
-        	LocalTime roundedTime = Calendar.roundTime(e.getDateTime().toLocalTime(), 30);
-        	Point p = e.getP();
-        	
-        	double dayWidth = e.getDayWidth();
-        	double timeScale = e.getTimeScale();
-        	System.out.println("datWidth="+dayWidth);
-        	System.out.println("timeScale="+timeScale);
-        	EventWidget eventAdd = new EventWidget(localDateTime.toLocalDate(),roundedTime);
-        	eventAdd.setBounds((int)p.getX(), (int)p.getY()-eventAdd.getHeight()/2+frm.getHeight()/15, 275, 250);
-        	eventAdd.setBorder(null);
-        	eventAdd.setBackground(null);
-        	events.add(new CalendarEvent(localDateTime.toLocalDate(), 
-        								 roundedTime.minusMinutes(30),
-        								 roundedTime.plusMinutes(30),
-        								 "新建日程"));
-        	JPanel eventJP = new JPanel();
-        	JTextArea eventText = new JTextArea("新建日程");
-        	JTextArea eventTime = new JTextArea(roundedTime.minusMinutes(30).toString());
-        	
-        	eventText.setFont(new Font("楷体",Font.BOLD,16));
-        	eventText.setForeground(Color.WHITE);
-        	eventText.setBorder(null);
-        	eventText.setBackground(null);
-        	eventText.setOpaque(false);
-        	
-        	eventTime.setFont(new Font("楷体",Font.PLAIN,12));
-        	eventTime.setForeground(Color.WHITE);
-        	eventTime.setBorder(null);
-        	eventTime.setBackground(null);
-        	eventTime.setOpaque(false);
-        	
-        	eventJP.setBounds((int)(p.getX()-dayWidth),(int)(p.getY()-timeScale*30*60+frm.getHeight()/15+1),(int)dayWidth,(int)(timeScale*60*60));
-        	eventJP.setBackground(new Color(63,181,245));
-        	eventJP.setLayout(new GridLayout(2,1));
-        	eventJP.add(eventTime);
-        	eventJP.add(eventText);
-        	
-        	layeredPane.add(eventAdd,200,0);
-        	layeredPane.add(eventJP,200,0);
-        	System.out.println(e.getDateTime());
-            System.out.println(Calendar.roundTime(e.getDateTime().toLocalTime(), 30));
-        });
+//        cal.addCalendarEventDoubleClickListener(e -> System.out.println(e.getCalendarEvent()));
+//        cal.addCalendarEmptyDoubleClickListener(e -> {
+//        	LocalDateTime localDateTime = e.getDateTime();
+//        	LocalTime roundedTime = Calendar.roundTime(e.getDateTime().toLocalTime(), 30);
+//        	Point p = e.getP();
+//        	
+//        	double dayWidth = e.getDayWidth();
+//        	double timeScale = e.getTimeScale();
+//        	System.out.println("datWidth="+dayWidth);
+//        	System.out.println("timeScale="+timeScale);
+//        	EventWidget eventAdd = new EventWidget(localDateTime.toLocalDate(),roundedTime);
+//        	eventAdd.setBounds((int)p.getX(), (int)p.getY()-eventAdd.getHeight()/2+frm.getHeight()/15, 275, 250);
+//        	eventAdd.setBorder(null);
+//        	eventAdd.setBackground(null);
+//        	events.add(new CalendarEvent(localDateTime.toLocalDate(), 
+//        								 roundedTime.minusMinutes(30),
+//        								 roundedTime.plusMinutes(30),
+//        								 "新建日程"));
+//        	JPanel eventJP = new JPanel();
+//        	JTextArea eventText = new JTextArea("新建日程");
+//        	JTextArea eventTime = new JTextArea(roundedTime.minusMinutes(30).toString());
+//        	
+//        	eventText.setFont(new Font("楷体",Font.BOLD,16));
+//        	eventText.setForeground(Color.WHITE);
+//        	eventText.setBorder(null);
+//        	eventText.setBackground(null);
+//        	eventText.setOpaque(false);
+//        	
+//        	eventTime.setFont(new Font("楷体",Font.PLAIN,12));
+//        	eventTime.setForeground(Color.WHITE);
+//        	eventTime.setBorder(null);
+//        	eventTime.setBackground(null);
+//        	eventTime.setOpaque(false);
+//        	
+//        	eventJP.setBounds((int)(p.getX()-dayWidth),(int)(p.getY()-timeScale*30*60+frm.getHeight()/15+1),(int)dayWidth,(int)(timeScale*60*60));
+//        	eventJP.setBackground(new Color(63,181,245));
+//        	eventJP.setLayout(new GridLayout(2,1));
+//        	eventJP.add(eventTime);
+//        	eventJP.add(eventText);
+//        	
+//        	layeredPane.add(eventAdd,200,0);
+//        	layeredPane.add(eventJP,200,0);
+//        	System.out.println(e.getDateTime());
+//            System.out.println(Calendar.roundTime(e.getDateTime().toLocalTime(), 30));
+//        });
         cal.addCalendarClickListener(e ->{
         	System.out.println("It's clicked!");
         });

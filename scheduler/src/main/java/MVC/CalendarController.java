@@ -40,7 +40,7 @@ public class CalendarController extends JPanel implements ActionListener{
         
         // add Listeners
         // weekCal.addCalendarEventDoubleClickListener(e -> System.out.println(e.getCalendarEvent()));
-        weekCal.addCalendarEmptyDoubleClickListener(e -> {
+        weekCal.addCalendarDoubleClickListener(e -> {
         	System.out.println(e.getDateTime());
         	System.out.println(Calendar.roundTime(e.getDateTime().toLocalTime(), 30));
         	LocalDateTime localDateTime = e.getDateTime();
@@ -50,10 +50,11 @@ public class CalendarController extends JPanel implements ActionListener{
         											roundedTime.plusMinutes(30),
         											"新建日程");
         	Point loc = new Point(e.getP());
-        	model.addEvents(event, loc);
+        	model.doubleClick(event, loc);
         	
         });
         weekCal.addCalendarClickListener(e->{
+        	Point loc = e.getPoint();
         	model.singleClick(e.getPoint());
         });
         goToTodayBtn.addActionListener(e -> System.out.println("It's today"));

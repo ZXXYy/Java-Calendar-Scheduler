@@ -25,11 +25,11 @@ public class DayCalendarTest {
 
         DayCalendar cal = new DayCalendar(events);
 
-        cal.addCalendarEventDoubleClickListener(e -> System.out.println(e.getCalendarEvent()));
-        cal.addCalendarEmptyDoubleClickListener(e -> {
-            System.out.println(e.getDateTime());
-            System.out.println(Calendar.roundTime(e.getDateTime().toLocalTime(), 30));
-        });
+//        cal.addCalendarEventDoubleClickListener(e -> System.out.println(e.getCalendarEvent()));
+//        cal.addCalendarEmptyDoubleClickListener(e -> {
+//            System.out.println(e.getDateTime());
+//            System.out.println(Calendar.roundTime(e.getDateTime().toLocalTime(), 30));
+//        });
 
         JButton goToTodayBtn = new JButton("Today");
         goToTodayBtn.addActionListener(e -> cal.goToToday());

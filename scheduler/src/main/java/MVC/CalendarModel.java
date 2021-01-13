@@ -13,6 +13,7 @@ public class CalendarModel {
 	private boolean doubleClicked = false;
 	private CalendarEvent newEvent;
 	private LocalDate currentStartDay;
+	private Point loc;
 	
 	private ArrayList<ActionListener> actionListenerList;
 	
@@ -20,10 +21,11 @@ public class CalendarModel {
 		this.currentStartDay = currentStartDay;
 	}
 	
-	public void addEvents(CalendarEvent event, Point loc) {
+	public void doubleClick(CalendarEvent event, Point loc) {
 		doubleClicked = true;
 		newEvent = event;
-		events.add(event);
+		if(!events.contains(event))
+			events.add(event);
 		processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "addEvent"));
 		//processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "showWidgets"));
 	}
@@ -44,6 +46,7 @@ public class CalendarModel {
 	}
 	
 	public void singleClick(Point p) {
+		this.loc = p;
 		if(doubleClicked) {
 			processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "clearWidget"));
 		}
@@ -109,5 +112,13 @@ public class CalendarModel {
 
 	public void setNewEvent(CalendarEvent newEvent) {
 		this.newEvent = newEvent;
+	}
+
+	public Point getLoc() {
+		return loc;
+	}
+
+	public void setLoc(Point loc) {
+		this.loc = loc;
 	}
 }

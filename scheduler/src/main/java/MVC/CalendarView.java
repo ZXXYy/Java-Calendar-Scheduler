@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.OverlayLayout;
@@ -54,7 +55,7 @@ public class CalendarView extends JPanel implements ActionListener{
 			setLayout(new OverlayLayout(this));
 			
 			displayWidget(eventAdd, newEvent);
-			displayEvent(events);
+			displayEvent(events, newEvent);
 			repaint();
 		}
 		if( e.getActionCommand().equals("showHeadersNextMonth")||
@@ -64,10 +65,30 @@ public class CalendarView extends JPanel implements ActionListener{
 			e.getActionCommand().equals("clearWidget")) {
 			ArrayList<CalendarEvent> events = model.getEvents();
 			this.removeAll();
-			displayEvent(events);
+			displayEvent(events,null);
 			repaint();
 		}
+		if(e.getActionCommand().equals("IsOnEvent")) {
+			ArrayList<CalendarEvent> events = model.getEvents();
+			Point p = model.getLoc();
+			for(CalendarEvent event :events) {
+				if (!isDayInRange(event)) continue;
+
+	            int x0 = (int) controller.getWeekCal().dayToPixel(event.getDate().getDayOfWeek());
+	            int y0 = (int) controller.getWeekCal().timeToPixel(event.getStart());
+	            int x1 = (int) (controller.getWeekCal().dayToPixel(event.getDate().getDayOfWeek()) + controller.getWeekCal().getDayWidth());;
+	            int y1 = (int) controller.getWeekCal().timeToPixel(event.getEnd());
+
+	            if (p.getX() >= x0 && p.getX() <= x1 && p.getY() >= y0 && p.getY() <= y1) {
+	            	this.removeAll();
+	            	displayEvent(events, event);
+	            	repaint();
+	                break;
+	            }
+			}
+		}
 	}
+	
 	void displayWidget(EventWidget eventAdd, CalendarEvent newEvent) {
 		Point weekCalLoc = controller.getWeekCal().getLocation();
 		int x = (int)controller.getWeekCal().dayToPixel(newEvent.getDate().plusDays(1).getDayOfWeek());
@@ -80,12 +101,12 @@ public class CalendarView extends JPanel implements ActionListener{
     	//eventAdd.setOpaque(false);
     	add(eventAdd);
 	}
-	void displayEvent(ArrayList<CalendarEvent> events) {
-		LocalDate currentStartDay = model.getCurrentStartDay();
+	void displayEvent(ArrayList<CalendarEvent> events, CalendarEvent highlightEvent) {
+		
 		for(CalendarEvent event :events) {
-			if((currentStartDay.toEpochDay()-event.getDate().toEpochDay())>0 ||
-				(currentStartDay.plusDays(7).toEpochDay()-event.getDate().toEpochDay())<0)
+			if(!isDayInRange(event))
 				continue;
+			
 			Point weekCalLoc = controller.getWeekCal().getLocation();
         	int x = (int)controller.getWeekCal().dayToPixel(event.getDate().getDayOfWeek());
         	int y = (int)(controller.getWeekCal().timeToPixel(event.getStart())+weekCalLoc.getY());
@@ -93,17 +114,24 @@ public class CalendarView extends JPanel implements ActionListener{
         	int height = (int)(controller.getWeekCal().getTimeScale()*60*60);
         	
 			JPanel eventJP = new JPanel();
-        	JTextArea eventText = new JTextArea("新建日程");
-        	JTextArea eventTime = new JTextArea(event.getStart().toString());
+        	JLabel eventText = new JLabel("新建日程");
+        	JLabel eventTime = new JLabel(event.getStart().toString());
         	
-        	eventText.setBounds(0, 0, width, 30);
+			if(highlightEvent!=null && event.equals(highlightEvent)) {
+				eventJP.setBackground(new Color(57,162,203));
+			}
+			else {
+				eventJP.setBackground(new Color(63,181,245));
+			}
+			
+        	eventText.setBounds(0, 0, width, 20);
         	eventText.setFont(new Font("楷体",Font.BOLD,16));
         	eventText.setForeground(Color.WHITE);
         	eventText.setBorder(null);
         	eventText.setBackground(null);
         	eventText.setOpaque(false);
         	
-        	eventTime.setBounds(0, 30, width, 30);
+        	eventTime.setBounds(0, 20, width, 20);
         	eventTime.setFont(new Font("楷体",Font.PLAIN,12));
         	eventTime.setForeground(Color.WHITE);
         	eventTime.setBorder(null);
@@ -111,9 +139,8 @@ public class CalendarView extends JPanel implements ActionListener{
         	eventTime.setOpaque(false);
         	
         	
-//        	System.out.println("x="+x+" y="+y+" width="+width+" height="+height);
+        	System.out.println(event);
         	eventJP.setBounds(x,y,width,height);
-        	eventJP.setBackground(new Color(63,181,245));
         	eventJP.setLayout(new GridLayout(2,1));
         	eventJP.add(eventTime);
         	eventJP.add(eventText);
@@ -121,6 +148,14 @@ public class CalendarView extends JPanel implements ActionListener{
         	add(eventJP);
         	
 		}
+	}
+	public boolean isDayInRange(CalendarEvent event) {
+		LocalDate currentStartDay = model.getCurrentStartDay();
+		if((currentStartDay.toEpochDay()-event.getDate().toEpochDay())>0 ||
+			(currentStartDay.plusDays(7).toEpochDay()-event.getDate().toEpochDay())<0)
+			return false;
+		return true;
+			
 	}
 
 }
