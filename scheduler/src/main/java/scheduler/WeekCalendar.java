@@ -48,7 +48,6 @@ public class WeekCalendar extends Calendar {
 
     @Override
 	public double dayToPixel(DayOfWeek dayOfWeek) {
-    	System.out.println("TIME_COL_WIDTH:"+TIME_COL_WIDTH);
         return TIME_COL_WIDTH + getDayWidth() * (dayOfWeek.getValue() - 1);
     }
 
