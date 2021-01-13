@@ -1,6 +1,8 @@
-package scheduler;
+package events;
 
 import java.awt.*;
+
+import scheduler.CalendarEvent;
 
 public class CalendarEventClickEvent extends AWTEvent {
 

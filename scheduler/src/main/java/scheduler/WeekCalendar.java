@@ -12,6 +12,10 @@ public class WeekCalendar extends Calendar {
         super(events);
         week = new Week(LocalDate.now());
     }
+    public WeekCalendar() {
+        super();
+        week = new Week(LocalDate.now());
+    }
 
     @Override
     protected boolean dateInRange(LocalDate date) {
@@ -43,7 +47,8 @@ public class WeekCalendar extends Calendar {
     }
 
     @Override
-    protected double dayToPixel(DayOfWeek dayOfWeek) {
+	public double dayToPixel(DayOfWeek dayOfWeek) {
+    	System.out.println("TIME_COL_WIDTH:"+TIME_COL_WIDTH);
         return TIME_COL_WIDTH + getDayWidth() * (dayOfWeek.getValue() - 1);
     }
 

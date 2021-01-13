@@ -25,8 +25,8 @@ public class DayCalendarTest {
 
         DayCalendar cal = new DayCalendar(events);
 
-        cal.addCalendarEventClickListener(e -> System.out.println(e.getCalendarEvent()));
-        cal.addCalendarEmptyClickListener(e -> {
+        cal.addCalendarEventDoubleClickListener(e -> System.out.println(e.getCalendarEvent()));
+        cal.addCalendarEmptyDoubleClickListener(e -> {
             System.out.println(e.getDateTime());
             System.out.println(Calendar.roundTime(e.getDateTime().toLocalTime(), 30));
         });

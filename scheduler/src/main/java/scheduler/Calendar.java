@@ -2,6 +2,7 @@ package scheduler;
 
 import javax.swing.*;
 import javax.swing.event.EventListenerList;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -16,6 +17,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import listeners.*;
+import events.*;
+
+
+
 public abstract class Calendar extends JComponent {
     protected static final LocalTime START_TIME = LocalTime.of(8, 0);
     protected static final LocalTime END_TIME = LocalTime.of(22, 0);
@@ -25,6 +31,7 @@ public abstract class Calendar extends JComponent {
 
     protected static final int HEADER_HEIGHT = 30;
     protected static final int TIME_COL_WIDTH = 100;
+    
 
     // An estimate of the width of a single character (not exact but good
     // enough)
@@ -33,6 +40,13 @@ public abstract class Calendar extends JComponent {
     private double timeScale;
     private double dayWidth;
     private Graphics2D g2;
+    
+    private boolean doubleClicked = false;
+    private Point doubleClickLoc;
+//    private Dimension doubleClickSizeEvent;
+//    private Point doubleClickLocWidget;
+//    private Dimension doubleClickSizeWidget;
+    
 
     private EventListenerList listenerList = new EventListenerList();
 
@@ -64,16 +78,51 @@ public abstract class Calendar extends JComponent {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                if (!checkCalendarEventClick(e.getPoint())) {
-                    checkCalendarEmptyClick(e.getPoint());
+                if(e.getClickCount() == 2) {
+                	if (!checkCalendarEventDoubleClick(e.getPoint())) {
+                        checkCalendarEmptyDoubleClick(e.getPoint());
+                    }
+                	
                 }
+                else if(e.getClickCount()==1) {
+                	if(!checkDoubleClick(e.getPoint())) {
+                		checkCalendarEventClick(e.getPoint());
+                	}
+                }
+                
             }
         });
     }
 
     protected abstract boolean dateInRange(LocalDate date);
-
+    
+    private boolean checkDoubleClick(Point p) {
+    	if(doubleClicked) {
+    		doubleClicked = false;
+    		//fireClearWidget();
+    		return true;
+    	}
+    	return false;
+    }
     private boolean checkCalendarEventClick(Point p) {
+    	 double x0, x1, y0, y1;
+    	 for (CalendarEvent event : events) {
+             if (!dateInRange(event.getDate())) continue;
+
+             x0 = dayToPixel(event.getDate().getDayOfWeek());
+             y0 = timeToPixel(event.getStart());
+             x1 = dayToPixel(event.getDate().getDayOfWeek()) + dayWidth;
+             y1 = timeToPixel(event.getEnd());
+
+             if (p.getX() >= x0 && p.getX() <= x1 && p.getY() >= y0 && p.getY() <= y1) {
+                 fireCalendarEventClick(event);
+                 return true;
+             }
+         }
+    	return false;
+    }
+    
+    private boolean checkCalendarEventDoubleClick(Point p) {
         double x0, x1, y0, y1;
         for (CalendarEvent event : events) {
             if (!dateInRange(event.getDate())) continue;
@@ -84,14 +133,14 @@ public abstract class Calendar extends JComponent {
             y1 = timeToPixel(event.getEnd());
 
             if (p.getX() >= x0 && p.getX() <= x1 && p.getY() >= y0 && p.getY() <= y1) {
-                fireCalendarEventClick(event);
+                fireCalendarEventDoubleClick(event);
                 return true;
             }
         }
         return false;
     }
 
-    private boolean checkCalendarEmptyClick(Point p) {
+    private boolean checkCalendarEmptyDoubleClick(Point p) {
         final double x0 = dayToPixel(getStartDay());
         final double x1 = dayToPixel(getEndDay()) + dayWidth;
         final double y0 = timeToPixel(START_TIME);
@@ -99,7 +148,7 @@ public abstract class Calendar extends JComponent {
         Point location = new Point(clickLocXToShowLoc(p.getX()),clickLocYToShowLoc(p.getY()));
         if (p.getX() >= x0 && p.getX() <= x1 && p.getY() >= y0 && p.getY() <= y1) {
             LocalDate date = getDateFromDay(pixelToDay(p.getX()));
-            fireCalendarEmptyClick(LocalDateTime.of(date, pixelToTime(p.getY())), location);
+            fireCalendarEmptyDoubleClick(LocalDateTime.of(date, pixelToTime(p.getY())), location, dayWidth, timeScale);
             return true;
         }
         return false;
@@ -109,51 +158,105 @@ public abstract class Calendar extends JComponent {
 
     // CalendarEventClick methods
 
-    public void addCalendarEventClickListener(CalendarEventClickListener l) {
-        listenerList.add(CalendarEventClickListener.class, l);
+    public void addCalendarEventDoubleClickListener(CalendarEventDoubleClickListener l) {
+        listenerList.add(CalendarEventDoubleClickListener.class, l);
     }
 
-    public void removeCalendarEventClickListener(CalendarEventClickListener l) {
-        listenerList.remove(CalendarEventClickListener.class, l);
+    public void removeCalendarEventDoubleClickListener(CalendarEventDoubleClickListener l) {
+        listenerList.remove(CalendarEventDoubleClickListener.class, l);
     }
 
     // Notify all listeners that have registered interest for
     // notification on this event type.
-    private void fireCalendarEventClick(CalendarEvent calendarEvent) {
+    private void fireCalendarEventDoubleClick(CalendarEvent calendarEvent) {
         // Guaranteed to return a non-null array
         Object[] listeners = listenerList.getListenerList();
         // Process the listeners last to first, notifying
         // those that are interested in this event
         CalendarEventClickEvent calendarEventClickEvent;
         for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == CalendarEventClickListener.class) {
+            if (listeners[i] == CalendarEventDoubleClickListener.class) {
                 calendarEventClickEvent = new CalendarEventClickEvent(this, calendarEvent);
-                ((CalendarEventClickListener) listeners[i + 1]).calendarEventClick(calendarEventClickEvent);
+                ((CalendarEventDoubleClickListener) listeners[i + 1]).calendarEventDoubleClick(calendarEventClickEvent);
             }
         }
     }
 
-    // CalendarEmptyClick methods
+    // CalendarEmptyDoubleClick methods
 
-    public void addCalendarEmptyClickListener(CalendarEmptyClickListener l) {
-        listenerList.add(CalendarEmptyClickListener.class, l);
+    public void addCalendarEmptyDoubleClickListener(CalendarEmptyDoubleClickListener l) {
+        listenerList.add(CalendarEmptyDoubleClickListener.class, l);
     }
 
-    public void removeCalendarEmptyClickListener(CalendarEmptyClickListener l) {
-        listenerList.remove(CalendarEmptyClickListener.class, l);
+    public void removeCalendarEmptyDoubleClickListener(CalendarEmptyDoubleClickListener l) {
+        listenerList.remove(CalendarEmptyDoubleClickListener.class, l);
     }
 
-    private void fireCalendarEmptyClick(LocalDateTime dateTime, Point p) {
+    private void fireCalendarEmptyDoubleClick(LocalDateTime dateTime, Point p, double dayWidth, double timeScale) {
+    	doubleClicked = true;
+    	doubleClickLoc = new Point(p);
         Object[] listeners = listenerList.getListenerList();
         CalendarEmptyClickEvent calendarEmptyClickEvent;
         for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == CalendarEmptyClickListener.class) {
-                calendarEmptyClickEvent = new CalendarEmptyClickEvent(this, dateTime, p);
-                ((CalendarEmptyClickListener) listeners[i + 1]).calendarEmptyClick(calendarEmptyClickEvent);
+            if (listeners[i] == CalendarEmptyDoubleClickListener.class) {
+                calendarEmptyClickEvent = new CalendarEmptyClickEvent(this, dateTime, p, dayWidth, timeScale);
+                ((CalendarEmptyDoubleClickListener) listeners[i + 1]).calendarEmptyDoubleClick(calendarEmptyClickEvent);
             }
         }
     }
 
+//==========================unfinished===================================
+    
+    // CalendarEventClick methods
+    
+    public void addCalendarClickListener(CalendarClickListener l) {
+        listenerList.add(CalendarClickListener.class, l);
+    }
+
+    public void removeCalendarClickListener(CalendarClickListener l) {
+        listenerList.remove(CalendarClickListener.class, l);
+    }
+    
+    private void fireCalendarEventClick(CalendarEvent calendarEvent) {
+    	// Guaranteed to return a non-null array
+        Object[] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        CalendarClickEvent calendarClickEvent;
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == CalendarClickListener.class) {
+                calendarClickEvent = new CalendarClickEvent(this, calendarEvent);
+                ((CalendarClickListener) listeners[i + 1]).calendarClick(calendarClickEvent);
+            }
+        }
+    }
+    
+    public void addClearWidgetListener(ClearWidgetListener l) {
+        listenerList.add(ClearWidgetListener.class, l);
+    }
+
+    public void removeClearWidgetListener(ClearWidgetListener l) {
+        listenerList.remove(ClearWidgetListener.class, l);
+    }
+    private void fireClearWidget(EventWidget widget) {
+    	// Guaranteed to return a non-null array
+        Object[] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        EventWidget eventWidget;
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ClearWidgetListener.class) {
+            	eventWidget = widget;
+                ((ClearWidgetListener) listeners[i + 1]).clearWidget(eventWidget);
+            }
+        }
+    }
+    
+    
+    
+    
+    
+    
     private void calculateScaleVars() {
         int width = getWidth();
         int height = getHeight();
@@ -176,7 +279,7 @@ public abstract class Calendar extends JComponent {
     // Gives x val of left most pixel for day col
     protected abstract double dayToPixel(DayOfWeek dayOfWeek);
 
-    protected double timeToPixel(LocalTime time) {
+    public double timeToPixel(LocalTime time) {
         return ((time.toSecondOfDay() - START_TIME.toSecondOfDay()) * timeScale) + HEADER_HEIGHT;
     }
 
@@ -230,7 +333,7 @@ public abstract class Calendar extends JComponent {
 
     protected abstract DayOfWeek getEndDay();
 
-    private void drawDayHeadings() {
+    public void drawDayHeadings() {
         int y = 20;
         int x;
         LocalDate day;
@@ -369,10 +472,10 @@ public abstract class Calendar extends JComponent {
         }
     }
 
-    protected double getDayWidth() {
+    public double getDayWidth() {
         return dayWidth;
     }
-    protected double getTimeScale() {
+    public double getTimeScale() {
     	return timeScale;
     }
     // Repaints every minute to update the current time line
