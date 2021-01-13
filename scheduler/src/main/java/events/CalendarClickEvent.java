@@ -7,14 +7,14 @@ import scheduler.CalendarEvent;
 
 
 public class CalendarClickEvent extends AWTEvent{
-	 private CalendarEvent calendarEvent;
+	 private Point p;
 
-	    public CalendarClickEvent(Object source, CalendarEvent calendarEvent) {
+	    public CalendarClickEvent(Object source, Point p) {
 	        super(source, 0);
-	        this.calendarEvent = calendarEvent;
+	        this.p = p;
 	    }
 
-	    public CalendarEvent getCalendarEvent() {
-	        return calendarEvent;
+	    public Point getPoint() {
+	        return p;
 	    }
 }

@@ -85,9 +85,7 @@ public abstract class Calendar extends JComponent {
                 	
                 }
                 else if(e.getClickCount()==1) {
-                	if(!checkDoubleClick(e.getPoint())) {
-                		checkCalendarEventClick(e.getPoint());
-                	}
+                	fireCalendarEventClick(e.getPoint());
                 }
                 
             }
@@ -102,23 +100,6 @@ public abstract class Calendar extends JComponent {
     		//fireClearWidget();
     		return true;
     	}
-    	return false;
-    }
-    private boolean checkCalendarEventClick(Point p) {
-    	 double x0, x1, y0, y1;
-    	 for (CalendarEvent event : events) {
-             if (!dateInRange(event.getDate())) continue;
-
-             x0 = dayToPixel(event.getDate().getDayOfWeek());
-             y0 = timeToPixel(event.getStart());
-             x1 = dayToPixel(event.getDate().getDayOfWeek()) + dayWidth;
-             y1 = timeToPixel(event.getEnd());
-
-             if (p.getX() >= x0 && p.getX() <= x1 && p.getY() >= y0 && p.getY() <= y1) {
-                 fireCalendarEventClick(event);
-                 return true;
-             }
-         }
     	return false;
     }
     
@@ -217,7 +198,7 @@ public abstract class Calendar extends JComponent {
         listenerList.remove(CalendarClickListener.class, l);
     }
     
-    private void fireCalendarEventClick(CalendarEvent calendarEvent) {
+    private void fireCalendarEventClick(Point p) {
     	// Guaranteed to return a non-null array
         Object[] listeners = listenerList.getListenerList();
         // Process the listeners last to first, notifying
@@ -225,7 +206,7 @@ public abstract class Calendar extends JComponent {
         CalendarClickEvent calendarClickEvent;
         for (int i = listeners.length - 2; i >= 0; i -= 2) {
             if (listeners[i] == CalendarClickListener.class) {
-                calendarClickEvent = new CalendarClickEvent(this, calendarEvent);
+                calendarClickEvent = new CalendarClickEvent(this, p);
                 ((CalendarClickListener) listeners[i + 1]).calendarClick(calendarClickEvent);
             }
         }

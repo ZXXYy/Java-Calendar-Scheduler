@@ -53,7 +53,9 @@ public class CalendarController extends JPanel implements ActionListener{
         	model.addEvents(event, loc);
         	
         });
-        
+        weekCal.addCalendarClickListener(e->{
+        	model.singleClick(e.getPoint());
+        });
         goToTodayBtn.addActionListener(e -> System.out.println("It's today"));
         nextWeekBtn.addActionListener(e -> {
         	LocalDate startDate = model.getCurrentStartDay();

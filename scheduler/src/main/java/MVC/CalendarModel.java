@@ -43,6 +43,14 @@ public class CalendarModel {
 		}
 	}
 	
+	public void singleClick(Point p) {
+		if(doubleClicked) {
+			processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "clearWidget"));
+		}
+		processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "IsOnEvent"));
+	}
+	
+	
 	public synchronized void addActionListener(ActionListener l){
 		if(actionListenerList == null){
 			actionListenerList = new ArrayList<ActionListener>();
