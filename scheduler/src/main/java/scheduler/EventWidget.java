@@ -10,11 +10,13 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.geom.GeneralPath;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -31,22 +33,70 @@ import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.EventListenerList;
+import javax.swing.text.Document;
+
+import events.CalendarDoubleClickEvent;
+import events.WidgetReviseEvent;
+import listeners.CalendarDoubleClickListener;
+import listeners.WidgetReviseListener;
 public class EventWidget extends WidgetsOutline{
 	
 	protected static final int width = 270;
 	protected static final int height = 240;
+	CalendarEvent event;
 	
-	public EventWidget(LocalDate day, LocalTime time) {
+	private JPanel subw;
+	private JTextField eventJTF;
+	private JTextField locationJTF;
+	private JTextField inviteJTF;
+	private JTextField noteJTF;
+	private JLabel allDayJl;
+	private JCheckBox allDayCheckBox;
+	private JLabel repeatJL;
+	private JLabel startJl;
+	private JPanel startDetail;
+	private JLabel startDayJL;
+	private JLabel startTimeJL;
+	private JTextField startHourJTF;
+	private JTextField startMinJTF;
+	private JLabel endJL;
+	private JPanel endDetail;
+	private JLabel endDayJL;
+	private JLabel endTimeJL;
+	private JTextField endHourJTF;
+	private JTextField endMinJTF;
+	private JComboBox<String> repeatCmb;
+	
+	private EventListenerList listenerList = new EventListenerList();
+	
+	public EventWidget(CalendarEvent event) {
+		 
 		super(width, height);
+		this.event = event;
 //		setSize(width,height);
 //		WidgetsOutline w = new WidgetsOutline(getWidth()-2,getHeight()-5);
+		LocalDate day = event.getDate();
+		LocalTime eventTime = event.getStart();
+		LocalTime endTime = event.getEnd();
+		String text = event.getText();
+		String location = event.getLocaction();
+		String notes = event.getNotes();
+		ArrayList<String> invitors = event.getInvitors();
 		
-		JPanel subw = new JPanel();
+		subw = new JPanel();
 		subw.setPreferredSize(new Dimension(width, height/4));
-		JTextField eventJTF = new JTextField("新建日程");
-		JTextField locationJTF = new JTextField("添加位置");
-		JTextField inviteJTF = new JTextField("添加受邀人");
-		JTextField noteJTF = new JTextField("添加备注");
+		eventJTF = new JTextField(text);
+		locationJTF = new JTextField(location);
+		
+		if(invitors.isEmpty()) {
+			inviteJTF = new JTextField("添加受邀人");
+		}
+		else {
+			inviteJTF = new JTextField(invitors.toString());
+		}
+		noteJTF = new JTextField(notes);
 		
 		mySetBackground(eventJTF);
 		mySetBackground(subw);
@@ -77,47 +127,58 @@ public class EventWidget extends WidgetsOutline{
 		int subw_wid = subw.getWidth();
 		int subw_hei = subw.getHeight();
 		
-		JLabel allDayJl = new JLabel("全天：");
+		allDayJl = new JLabel("全天：");
 		allDayJl.setFont(new Font("宋体",Font.PLAIN,10));
 		allDayJl.setHorizontalAlignment(SwingConstants.RIGHT);
 		
-		JCheckBox allDayCheckBox = new JCheckBox();
+		allDayCheckBox = new JCheckBox();
 		
-		JLabel repeatJL = new JLabel("重复：");
+		repeatJL = new JLabel("重复：");
 		repeatJL.setFont(new Font("宋体",Font.PLAIN,10));
 		repeatJL.setHorizontalAlignment(SwingConstants.RIGHT);
 		
-		JLabel startJl = new JLabel("开始时间：");
+		startJl = new JLabel("开始时间：");
 		startJl.setFont(new Font("宋体",Font.PLAIN,10));
 		startJl.setHorizontalAlignment(SwingConstants.RIGHT);
 
 	
-		JPanel startDetail = new JPanel();
+		startDetail = new JPanel();
 		startDetail.setLayout(null);
 		mySetBackground(startDetail);
 		
-		JLabel startDayJL = new JLabel(day.toString());
-		JLabel startTimeJL = new JLabel("下午");
-		JTextField startHourJTF = new JTextField("1");
-		JTextField startMinJTF = new JTextField("45");
-
+		startDayJL = new JLabel(day.toString());
+		
+		startHourJTF = new JTextField(String.format("%02d",eventTime.getHour()));
+		startMinJTF = new JTextField(String.format("%02d",eventTime.getMinute()));
+		 LocalTime time1 = LocalTime.parse("12:00:00");
+		if(eventTime.compareTo(time1)<0) {
+			startTimeJL = new JLabel("上午");
+		}else {
+			startTimeJL = new JLabel("下午");
+		}
+		
 		startDayJL.setFont(new Font("宋体",Font.PLAIN,10));
 		startTimeJL.setFont(new Font("宋体",Font.PLAIN,10));
 		
 		
-		JLabel endJL = new JLabel("结束：");
+		endJL = new JLabel("结束：");
 		endJL.setFont(new Font("宋体",Font.PLAIN,10));
 		endJL.setHorizontalAlignment(SwingConstants.RIGHT);
-		JPanel endDetail = new JPanel();
+		endDetail = new JPanel();
 		endDetail.setLayout(null);
 		mySetBackground(endDetail);
 		
-		JLabel endDayJL = new JLabel(day.toString());
+		endDayJL = new JLabel(day.toString());
 		endDayJL.setFont(new Font("宋体",Font.PLAIN,10));
-		JLabel endTimeJL = new JLabel("下午");
+		
+		if(eventTime.compareTo(time1)<0) {
+			endTimeJL = new JLabel("上午");
+		}else {
+			endTimeJL = new JLabel("下午");
+		}
 		endTimeJL.setFont(new Font("宋体",Font.PLAIN,10));
-		JTextField endHourJTF = new JTextField("1");
-		JTextField endMinJTF = new JTextField("45");
+		endHourJTF = new JTextField(String.format("%02d",endTime.getHour()));
+		endMinJTF = new JTextField(String.format("%02d",endTime.getMinute()));
 
 		subw.setLayout(null);
 		
@@ -157,19 +218,51 @@ public class EventWidget extends WidgetsOutline{
 		endDetail.add(endHourJTF);
 		endDetail.add(endMinJTF);
 		
-		JComboBox<String> repeatCmb=new JComboBox<String>(); 
+		repeatCmb=new JComboBox<String>(); 
 		repeatCmb.addItem("无");
 		repeatCmb.addItem("每天");
 		repeatCmb.addItem("每周");
 		repeatCmb.addItem("每月");
 		repeatCmb.addItem("每年");
 		repeatCmb.setFont(new Font("宋体",Font.PLAIN,10));
+		repeatCmb.setForeground(Color.BLACK);
 		repeatJL.setBounds(0, 3*subw_hei/4, subw_wid/4,subw_hei/4);
 		subw.add(repeatJL);
 		repeatCmb.setBounds(subw_wid/4, 3*subw_hei/4, 1*subw_wid/3,subw_hei/4);
 		subw.add(repeatCmb);
 		setBackground(new Color(200, 200, 200, 64));
 //		add(w);
+		setupEventListeners();
+	}
+	public void setupEventListeners() {
+		eventJTF.getDocument().addDocumentListener(new javax.swing.event.DocumentListener(){
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				
+				String text = eventJTF.getText();
+				event.setText(text);
+				fireWidgetRevise(event);
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent documentEvent) {
+				// TODO Auto-generated method stub
+				String text = eventJTF.getText();
+				event.setText(text);
+				fireWidgetRevise(event);
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent documentEvent) {
+				// TODO Auto-generated method stub
+				String text = eventJTF.getText();
+				event.setText(text);
+				fireWidgetRevise(event);
+			}
+		});
+		
 		
 	}
 	public int getHeight() {
@@ -185,9 +278,28 @@ public class EventWidget extends WidgetsOutline{
 		com.setOpaque(false);
 	}
 	
+	public void addWidgetReviseListener(WidgetReviseListener l) {
+        listenerList.add(WidgetReviseListener.class, l);
+    }
+
+    public void removeWidgetReviseListener(WidgetReviseListener l) {
+        listenerList.remove(WidgetReviseListener.class, l);
+    }
+
+    private void fireWidgetRevise(CalendarEvent event) {
+        Object[] listeners = listenerList.getListenerList();
+        WidgetReviseEvent widgetReviseEvent;
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == WidgetReviseListener.class) {
+            	widgetReviseEvent= new WidgetReviseEvent(this, event);
+                ((WidgetReviseListener) listeners[i + 1]).widgetRevise(widgetReviseEvent);
+            }
+        }
+    }
+    
 	public static void main(String args[]) {
     	JFrame frame = new JFrame("Test");
-    	EventWidget p = new EventWidget(LocalDate.of(2021, 1, 4),LocalTime.of(14, 0));
+    	EventWidget p = new EventWidget(new CalendarEvent(LocalDate.of(2021, 1, 4), LocalTime.of(14, 0), LocalTime.of(14, 20), "Test 11/11 14:00-14:20"));
     	System.out.println("JFrame:"+frame.getBackground());
     	
     	frame.setLayout(new BorderLayout());

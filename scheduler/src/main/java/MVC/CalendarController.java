@@ -49,6 +49,8 @@ public class CalendarController extends JPanel implements ActionListener{
         											roundedTime.minusMinutes(30),
         											roundedTime.plusMinutes(30),
         											"新建日程");
+        	event.setLocaction("添加位置");
+        	event.setNotes("添加备注");
         	Point loc = new Point(e.getP());
         	model.doubleClick(event, loc);
         	

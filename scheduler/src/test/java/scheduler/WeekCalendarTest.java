@@ -21,7 +21,7 @@ public class WeekCalendarTest {
 //        events.add(new CalendarEvent(LocalDate.of(2021, 1, 8), LocalTime.of(9, 30), LocalTime.of(10, 00), "Test 18/11 9:30-10:00"));
 //        events.add(new CalendarEvent(LocalDate.of(2021, 1, 8), LocalTime.of(16, 00), LocalTime.of(16, 45), "Test 18/11 16:00-16:45"));
 
-        WeekCalendar cal = new WeekCalendar(events);
+        WeekCalendar cal = new WeekCalendar();
 
 //        cal.addCalendarEventDoubleClickListener(e -> System.out.println(e.getCalendarEvent()));
 //        cal.addCalendarEmptyDoubleClickListener(e -> {

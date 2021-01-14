@@ -26,6 +26,8 @@ public class CalendarModel {
 		newEvent = event;
 		if(!events.contains(event))
 			events.add(event);
+		else 
+			newEvent = events.get(events.indexOf(event));
 		processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "addEvent"));
 		//processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "showWidgets"));
 	}
@@ -53,6 +55,13 @@ public class CalendarModel {
 		processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "IsOnEvent"));
 	}
 	
+	public void updateEvent(CalendarEvent oldEvent, CalendarEvent newEvent) {
+//		if(events.contains(oldEvent))
+//			events.remove(oldEvent);
+//		events.add(newEvent);
+//		this.newEvent = newEvent;
+//		processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "upDateEvent"));
+	}
 	
 	public synchronized void addActionListener(ActionListener l){
 		if(actionListenerList == null){

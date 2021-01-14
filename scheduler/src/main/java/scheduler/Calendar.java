@@ -36,27 +36,16 @@ public abstract class Calendar extends JComponent {
     // An estimate of the width of a single character (not exact but good
     // enough)
     private static final int FONT_LETTER_PIXEL_WIDTH = 7;
-    private ArrayList<CalendarEvent> events;
     private double timeScale;
     private double dayWidth;
     private Graphics2D g2;
-    
-    private boolean doubleClicked = false;
-    private Point doubleClickLoc;
-//    private Dimension doubleClickSizeEvent;
-//    private Point doubleClickLocWidget;
-//    private Dimension doubleClickSizeWidget;
-    
 
     private EventListenerList listenerList = new EventListenerList();
 
-    
-    public Calendar() {
-        this(new ArrayList<>());
-    }
+   
 
-    Calendar(ArrayList<CalendarEvent> events) {
-        this.events = events;
+    public Calendar() {
+        
         setupEventListeners();
         setupTimer();
     }
@@ -108,8 +97,6 @@ public abstract class Calendar extends JComponent {
     }
 
     private void fireCalendarDoubleClick(LocalDateTime dateTime, Point p, double dayWidth, double timeScale) {
-    	doubleClicked = true;
-    	doubleClickLoc = new Point(p);
         Object[] listeners = listenerList.getListenerList();
         CalendarDoubleClickEvent calendarDoubleClickEvent;
         for (int i = listeners.length - 2; i >= 0; i -= 2) {
@@ -120,7 +107,6 @@ public abstract class Calendar extends JComponent {
         }
     }
 
-//==========================unfinished===================================
     
     // CalendarEventClick methods
     
@@ -215,7 +201,6 @@ public abstract class Calendar extends JComponent {
         drawTodayShade();
         drawGrid();
         drawTimes();
-        drawEvents();
         drawCurrentTimeLine();
     }
 
@@ -322,45 +307,6 @@ public abstract class Calendar extends JComponent {
         }
     }
 
-    private void drawEvents() {
-        double x;
-        double y0;
-
-        for (CalendarEvent event : events) {
-            if (!dateInRange(event.getDate())) continue;
-
-            x = dayToPixel(event.getDate().getDayOfWeek());
-            y0 = timeToPixel(event.getStart());
-
-            Rectangle2D rect = new Rectangle2D.Double(x, y0, dayWidth, (timeToPixel(event.getEnd()) - timeToPixel(event.getStart())));
-            Color origColor = g2.getColor();
-            g2.setColor(event.getColor());
-            g2.fill(rect);
-            g2.setColor(origColor);
-
-            // Draw time header
-
-            // Store the current font state
-            Font origFont = g2.getFont();
-
-            final float fontSize = origFont.getSize() - 1.6F;
-
-            // Create a new font with same properties but bold
-            Font newFont = origFont.deriveFont(Font.BOLD, fontSize);
-            g2.setFont(newFont);
-
-            g2.drawString(event.getStart() + " - " + event.getEnd(), (int) x + 5, (int) y0 + 11);
-
-            // Unbolden
-            g2.setFont(origFont.deriveFont(fontSize));
-
-            // Draw the event's text
-            g2.drawString(event.getText(), (int) x + 5, (int) y0 + 23);
-
-            // Reset font
-            g2.setFont(origFont);
-        }
-    }
 
     public double getDayWidth() {
         return dayWidth;
@@ -378,22 +324,6 @@ public abstract class Calendar extends JComponent {
 
     public void goToToday() {
         setRangeToToday();
-        repaint();
-    }
-
-    public void addEvent(CalendarEvent event) {
-        events.add(event);
-        repaint();
-    }
-
-    public boolean removeEvent(CalendarEvent event) {
-        boolean removed = events.remove(event);
-        repaint();
-        return removed;
-    }
-
-    public void setEvents(ArrayList<CalendarEvent> events) {
-        this.events = events;
         repaint();
     }
     

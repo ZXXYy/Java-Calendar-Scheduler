@@ -1,6 +1,7 @@
 package MVC;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Point;
@@ -50,10 +51,26 @@ public class CalendarView extends JPanel implements ActionListener{
 		if(e.getActionCommand().equals("addEvent")) {
 			ArrayList<CalendarEvent> events = model.getEvents();
 			CalendarEvent newEvent = model.getNewEvent();
-			EventWidget eventAdd = new EventWidget(newEvent.getDate(),newEvent.getStart());
+			EventWidget eventAdd = new EventWidget(newEvent);
+			eventAdd.addWidgetReviseListener(w->{
+				// due to shallow copy we can revise the events in model
+//				CalendarEvent reviseEvent = w.getEvent();
+			
+				Component[] componentList = this.getComponents();
+				//Loop through the components
+				for(Component c : componentList){
+				    //Find the components you want to remove
+				    if(!(c instanceof EventWidget)){
+				        //Remove it
+				        this.remove(c);
+				    }
+				}
+				displayEvent(events, newEvent);
+				repaint();
+			});
+			
 			this.removeAll();
 			setLayout(new OverlayLayout(this));
-			
 			displayWidget(eventAdd, newEvent);
 			displayEvent(events, newEvent);
 			repaint();
@@ -87,6 +104,7 @@ public class CalendarView extends JPanel implements ActionListener{
 	            }
 			}
 		}
+		
 	}
 	
 	void displayWidget(EventWidget eventAdd, CalendarEvent newEvent) {
@@ -114,7 +132,7 @@ public class CalendarView extends JPanel implements ActionListener{
         	int height = (int)(controller.getWeekCal().getTimeScale()*60*60);
         	
 			JPanel eventJP = new JPanel();
-        	JLabel eventText = new JLabel("新建日程");
+        	JLabel eventText = new JLabel(event.getText());
         	JLabel eventTime = new JLabel(event.getStart().toString());
         	
 			if(highlightEvent!=null && event.equals(highlightEvent)) {
@@ -139,7 +157,7 @@ public class CalendarView extends JPanel implements ActionListener{
         	eventTime.setOpaque(false);
         	
         	
-        	System.out.println(event);
+//        	System.out.println(event);
         	eventJP.setBounds(x,y,width,height);
         	eventJP.setLayout(new GridLayout(2,1));
         	eventJP.add(eventTime);

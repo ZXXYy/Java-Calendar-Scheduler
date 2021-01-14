@@ -3,6 +3,7 @@ package scheduler;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 
 public class CalendarEvent {
 
@@ -12,10 +13,31 @@ public class CalendarEvent {
     private LocalTime start;
     private LocalTime end;
     private String text;
-    private Color color;
+    private String locaction;
+    private ArrayList<String> invitor;
+    private String notes;
+    
+    public String getLocaction() {
+		return locaction;
+	}
+
+	public void setLocaction(String locaction) {
+		this.locaction = locaction;
+	}
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
+	}
+
+	private Color color;
 
     public CalendarEvent(LocalDate date, LocalTime start, LocalTime end, String text) {
         this(date, start, end, text, DEFAULT_COLOR);
+        invitor = new ArrayList<String>();
     }
 
     public CalendarEvent(LocalDate date, LocalTime start, LocalTime end, String text, Color color) {
@@ -65,7 +87,18 @@ public class CalendarEvent {
     public Color getColor() {
         return color;
     }
-
+    
+    public void addInvitors(String name) {
+    	invitor.add(name);
+    }
+    public void removeInvitors(String name) {
+    	if(invitor.contains(name)) {
+    		invitor.remove(name);
+    	}
+    }
+    public ArrayList<String> getInvitors() {
+    	return invitor;
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
