@@ -27,6 +27,7 @@ public class CalendarView extends JPanel implements ActionListener{
 	private CalendarController controller;
 	public CalendarView() {
 		
+		
 	}
 	public void setModel(CalendarModel newModel) {
 		model = newModel;

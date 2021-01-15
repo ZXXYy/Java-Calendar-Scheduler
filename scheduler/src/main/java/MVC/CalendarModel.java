@@ -100,7 +100,9 @@ public class CalendarModel {
 	public ArrayList<CalendarEvent> getEvents() {
 		return events;
 	}
-
+	public void addEvents(CalendarEvent event) {
+		events.add(event);
+	}
 	public void setEvents(ArrayList<CalendarEvent> events) {
 		this.events = events;
 	}

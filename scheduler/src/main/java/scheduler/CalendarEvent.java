@@ -15,8 +15,10 @@ public class CalendarEvent {
     private String text;
     private String location;
     private ArrayList<String> invitor;
+    private ArrayList<String> pendingInvitor;
     private String notes;
 	private Color color;
+	private boolean pending;
 
     public CalendarEvent(LocalDate date, LocalTime start, LocalTime end, String text) {
         this(date, start, end, text, DEFAULT_COLOR);
@@ -98,7 +100,26 @@ public class CalendarEvent {
     		invitor.remove(name);
     	}
     }
-    public ArrayList<String> getInvitors() {
+    public ArrayList<String> getPendingInvitors() {
+    	return pendingInvitor;
+    }
+    public void addPendingInvitors(String name) {
+    	pendingInvitor.add(name);
+    }
+    public void removePendingInvitors(String name) {
+    	if(pendingInvitor.contains(name)) {
+    		pendingInvitor.remove(name);
+    	}
+    }
+    public boolean isPending() {
+		return pending;
+	}
+
+	public void setPending(boolean pending) {
+		this.pending = pending;
+	}
+
+	public ArrayList<String> getInvitors() {
     	return invitor;
     }
     @Override
