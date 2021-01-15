@@ -8,12 +8,14 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.OverlayLayout;
 
 import scheduler.CalendarEvent;
@@ -48,25 +50,30 @@ public class CalendarView extends JPanel implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
-		if(e.getActionCommand().equals("addEvent")) {
+		if(e.getActionCommand().equals("addEvent")|| e.getActionCommand().equals("updateEvent")) {
 			ArrayList<CalendarEvent> events = model.getEvents();
 			CalendarEvent newEvent = model.getNewEvent();
 			EventWidget eventAdd = new EventWidget(newEvent);
 			eventAdd.addWidgetReviseListener(w->{
 				// due to shallow copy we can revise the events in model
-//				CalendarEvent reviseEvent = w.getEvent();
-			
-				Component[] componentList = this.getComponents();
-				//Loop through the components
-				for(Component c : componentList){
-				    //Find the components you want to remove
-				    if(!(c instanceof EventWidget)){
-				        //Remove it
-				        this.remove(c);
-				    }
+				// CalendarEvent reviseEvent = w.getEvent();
+				if(w.isMoveWidget()) {
+					model.updateWidget(newEvent);
 				}
-				displayEvent(events, newEvent);
-				repaint();
+				else {
+					Component[] componentList = this.getComponents();
+					//Loop through the components
+					for(Component c : componentList){
+					    //Find the components you want to remove
+					    if(!(c instanceof EventWidget)){
+					        //Remove it
+					        this.remove(c);
+					    }
+					}
+					displayEvent(events, newEvent);
+					repaint();
+				}
+				
 			});
 			
 			this.removeAll();
@@ -78,11 +85,70 @@ public class CalendarView extends JPanel implements ActionListener{
 		if( e.getActionCommand().equals("showHeadersNextMonth")||
 			e.getActionCommand().equals("showHeadersNextWeek") ||
 			e.getActionCommand().equals("showHeadersPreWeek")  ||
-			e.getActionCommand().equals("showHeadersPreMonth") ||
-			e.getActionCommand().equals("clearWidget")) {
+			e.getActionCommand().equals("showHeadersPreMonth") 
+			) {
 			ArrayList<CalendarEvent> events = model.getEvents();
 			this.removeAll();
 			displayEvent(events,null);
+			repaint();
+		}
+		if(e.getActionCommand().equals("clearWidget")) {
+			
+			Component[] componentList = this.getComponents();
+			//Loop through the components
+			for(Component c : componentList){
+			    //Find the components you want to remove
+			    if((c instanceof EventWidget)){
+			    	CalendarEvent event = ((EventWidget) c).getEvent();
+			    	JTextField eventJTF = ((EventWidget) c).getEventJTF();
+			    	JTextField locationJTF = ((EventWidget) c).getLocationJTF();
+			    	JTextField inviteJTF = ((EventWidget) c).getInviteJTF();
+			    	JTextField noteJTF = ((EventWidget) c).getNoteJTF();
+			    	JTextField startHourJTF = ((EventWidget) c).getStartHourJTF();
+			    	JTextField startMinJTF = ((EventWidget) c).getStartMinJTF();
+			    	JTextField endHourJTF = ((EventWidget) c).getEndHourJTF();
+			    	JTextField endMinJTF = ((EventWidget) c).getEndMinJTF();
+			    	
+			    	String hours = startHourJTF.getText();
+			    	String mins = startMinJTF.getText();
+			    	if(Integer.parseInt(hours)<8) {
+			    		hours = "08";
+			    		mins = "00";
+			    	}
+			    	else if(Integer.parseInt(hours)>=22) {
+			    		hours = "21";
+			    	}
+					
+					LocalTime updateStartTime = LocalTime.of(Integer.parseInt(hours), Integer.parseInt(mins), 0);
+					event.setStart(updateStartTime);
+					
+					hours = endHourJTF.getText();
+					mins = endMinJTF.getText();
+					if(Integer.parseInt(hours)<8) {
+			    		hours = "9";
+			    	}
+			    	else if(Integer.parseInt(hours)>=22) {
+			    		mins = "00";
+			    		hours = "22";
+			    	}
+					LocalTime endStartTime = LocalTime.of(Integer.parseInt(hours), Integer.parseInt(mins), 0);
+					event.setEnd(endStartTime);
+					
+			    	event.setText(eventJTF.getText());
+			    	event.setLocation(locationJTF.getText());
+			    	event.setNotes(noteJTF.getText());
+			    	
+			    	String text = inviteJTF.getText();
+					String [] names = text.split(",");
+					ArrayList<String> invitors = event.getInvitors();
+					invitors.clear();
+					for(String name:names) {
+						invitors.add(name);
+					}
+			        //Remove it
+			        this.remove(c);
+			    }
+			}
 			repaint();
 		}
 		if(e.getActionCommand().equals("IsOnEvent")) {
@@ -129,7 +195,8 @@ public class CalendarView extends JPanel implements ActionListener{
         	int x = (int)controller.getWeekCal().dayToPixel(event.getDate().getDayOfWeek());
         	int y = (int)(controller.getWeekCal().timeToPixel(event.getStart())+weekCalLoc.getY());
         	int width = (int)controller.getWeekCal().getDayWidth();
-        	int height = (int)(controller.getWeekCal().getTimeScale()*60*60);
+        	int height = (int)(controller.getWeekCal().timeToPixel(event.getEnd())-
+        					controller.getWeekCal().timeToPixel(event.getStart()));
         	
 			JPanel eventJP = new JPanel();
         	JLabel eventText = new JLabel(event.getText());

@@ -24,10 +24,18 @@ public class CalendarModel {
 	public void doubleClick(CalendarEvent event, Point loc) {
 		doubleClicked = true;
 		newEvent = event;
-		if(!events.contains(event))
+		boolean flag = false;
+		for(CalendarEvent e:events) {
+			if(newEvent.getDate().compareTo(e.getDate())==0 && 
+			 newEvent.getStart().compareTo(e.getStart())>=0 &&
+			 newEvent.getEnd().compareTo(e.getEnd())<=0) {
+				newEvent = events.get(events.indexOf(e));
+				flag = true;
+				break;
+			}
+		}
+		if(!flag)
 			events.add(event);
-		else 
-			newEvent = events.get(events.indexOf(event));
 		processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "addEvent"));
 		//processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "showWidgets"));
 	}
@@ -55,12 +63,10 @@ public class CalendarModel {
 		processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "IsOnEvent"));
 	}
 	
-	public void updateEvent(CalendarEvent oldEvent, CalendarEvent newEvent) {
-//		if(events.contains(oldEvent))
-//			events.remove(oldEvent);
-//		events.add(newEvent);
-//		this.newEvent = newEvent;
-//		processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "upDateEvent"));
+	public void updateWidget(CalendarEvent newEvent) {
+		this.newEvent = newEvent;
+		processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "clearWidget"));
+		processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "updateEvent"));
 	}
 	
 	public synchronized void addActionListener(ActionListener l){

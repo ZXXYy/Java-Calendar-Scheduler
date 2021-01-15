@@ -12,6 +12,10 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.geom.GeneralPath;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,6 +38,7 @@ import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.EventListenerList;
 import javax.swing.text.Document;
 
@@ -81,7 +86,7 @@ public class EventWidget extends WidgetsOutline{
 		LocalTime eventTime = event.getStart();
 		LocalTime endTime = event.getEnd();
 		String text = event.getText();
-		String location = event.getLocaction();
+		String location = event.getLocation();
 		String notes = event.getNotes();
 		ArrayList<String> invitors = event.getInvitors();
 		
@@ -89,12 +94,17 @@ public class EventWidget extends WidgetsOutline{
 		subw.setPreferredSize(new Dimension(width, height/4));
 		eventJTF = new JTextField(text);
 		locationJTF = new JTextField(location);
-		
+		StringBuffer invitorList = new StringBuffer();
 		if(invitors.isEmpty()) {
 			inviteJTF = new JTextField("添加受邀人");
 		}
 		else {
-			inviteJTF = new JTextField(invitors.toString());
+			for(String invitor : invitors) {
+				invitorList.append(invitor);
+				if(!(invitor.equals(invitors.get(invitors.size()-1))))
+					invitorList.append(",");
+			}
+			inviteJTF = new JTextField(invitorList.toString());
 		}
 		noteJTF = new JTextField(notes);
 		
@@ -132,7 +142,8 @@ public class EventWidget extends WidgetsOutline{
 		allDayJl.setHorizontalAlignment(SwingConstants.RIGHT);
 		
 		allDayCheckBox = new JCheckBox();
-		
+		if(eventTime.compareTo(LocalTime.of(8, 0))==0 ||endTime.compareTo(LocalTime.of(22, 0))==0)
+			allDayCheckBox.setSelected(true);
 		repeatJL = new JLabel("重复：");
 		repeatJL.setFont(new Font("宋体",Font.PLAIN,10));
 		repeatJL.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -227,47 +238,121 @@ public class EventWidget extends WidgetsOutline{
 		repeatCmb.setFont(new Font("宋体",Font.PLAIN,10));
 		repeatCmb.setForeground(Color.BLACK);
 		repeatJL.setBounds(0, 3*subw_hei/4, subw_wid/4,subw_hei/4);
-		subw.add(repeatJL);
+		//subw.add(repeatJL);
 		repeatCmb.setBounds(subw_wid/4, 3*subw_hei/4, 1*subw_wid/3,subw_hei/4);
-		subw.add(repeatCmb);
+		//subw.add(repeatCmb);
 		setBackground(new Color(200, 200, 200, 64));
 //		add(w);
 		setupEventListeners();
 	}
+	
 	public void setupEventListeners() {
 		eventJTF.getDocument().addDocumentListener(new javax.swing.event.DocumentListener(){
-
 			@Override
 			public void changedUpdate(DocumentEvent e) {
-				// TODO Auto-generated method stub
 				
-				String text = eventJTF.getText();
-				event.setText(text);
-				fireWidgetRevise(event);
 			}
-
+			
 			@Override
 			public void insertUpdate(DocumentEvent documentEvent) {
-				// TODO Auto-generated method stub
 				String text = eventJTF.getText();
 				event.setText(text);
-				fireWidgetRevise(event);
+				fireWidgetRevise(event, false);
 			}
 
 			@Override
 			public void removeUpdate(DocumentEvent documentEvent) {
-				// TODO Auto-generated method stub
 				String text = eventJTF.getText();
 				event.setText(text);
-				fireWidgetRevise(event);
+				fireWidgetRevise(event,false);
 			}
 		});
 		
+		KeyAdapter startKeyAdapter= new KeyAdapter(){ 
+			public void keyPressed(KeyEvent e)    
+			{    
+				if(e.getKeyChar()==KeyEvent.VK_ENTER )   //按回车键执行相应操作; 
+				{ 
+					String hours = startHourJTF.getText();
+					String mins = startMinJTF.getText();
+					LocalTime updateStartTime = LocalTime.of(Integer.parseInt(hours), Integer.parseInt(mins), 0);
+					event.setStart(updateStartTime);
+					fireWidgetRevise(event,true);
+				} 
+			}
+		};
+		KeyAdapter endKeyAdapter= new KeyAdapter(){ 
+			public void keyPressed(KeyEvent e)    
+			{    
+				if(e.getKeyChar()==KeyEvent.VK_ENTER )   //按回车键执行相应操作; 
+				{ 
+					String hours = endHourJTF.getText();
+					String mins = endMinJTF.getText();
+					LocalTime endStartTime = LocalTime.of(Integer.parseInt(hours), Integer.parseInt(mins), 0);
+					event.setEnd(endStartTime);
+					
+					fireWidgetRevise(event,true);
+				} 
+			}
+		};
+		startHourJTF.addKeyListener(startKeyAdapter);
+		startMinJTF.addKeyListener(startKeyAdapter);
+		endHourJTF.addKeyListener(endKeyAdapter);
+		endMinJTF.addKeyListener(endKeyAdapter);
 		
+		allDayCheckBox.addActionListener(new ActionListener(){
+		      public void actionPerformed(ActionEvent e) {
+		          if(allDayCheckBox.isSelected()) {
+		        	  System.out.println("Here!");
+		        	  
+		        	  startHourJTF.setText("08");
+		        	  startMinJTF.setText("00");
+		        	  endHourJTF.setText("22");
+		        	  endMinJTF.setText("00");
+						fireWidgetRevise(event,true);
+		          }
+		        }
+		      });
 	}
 	public int getHeight() {
 		return height;
 	}
+	public CalendarEvent getEvent() {
+		return event;
+	}
+
+	public JTextField getEventJTF() {
+		return eventJTF;
+	}
+
+	public JTextField getLocationJTF() {
+		return locationJTF;
+	}
+
+	public JTextField getInviteJTF() {
+		return inviteJTF;
+	}
+
+	public JTextField getNoteJTF() {
+		return noteJTF;
+	}
+
+	public JTextField getStartHourJTF() {
+		return startHourJTF;
+	}
+
+	public JTextField getStartMinJTF() {
+		return startMinJTF;
+	}
+
+	public JTextField getEndHourJTF() {
+		return endHourJTF;
+	}
+
+	public JTextField getEndMinJTF() {
+		return endMinJTF;
+	}
+
 	@Override
     public Dimension getPreferredSize() {
   	  return new Dimension(width, height);
@@ -286,28 +371,17 @@ public class EventWidget extends WidgetsOutline{
         listenerList.remove(WidgetReviseListener.class, l);
     }
 
-    private void fireWidgetRevise(CalendarEvent event) {
+    private void fireWidgetRevise(CalendarEvent event, boolean isMove) {
         Object[] listeners = listenerList.getListenerList();
         WidgetReviseEvent widgetReviseEvent;
         for (int i = listeners.length - 2; i >= 0; i -= 2) {
             if (listeners[i] == WidgetReviseListener.class) {
-            	widgetReviseEvent= new WidgetReviseEvent(this, event);
+            	widgetReviseEvent= new WidgetReviseEvent(this, event, isMove);
                 ((WidgetReviseListener) listeners[i + 1]).widgetRevise(widgetReviseEvent);
             }
         }
     }
     
-	public static void main(String args[]) {
-    	JFrame frame = new JFrame("Test");
-    	EventWidget p = new EventWidget(new CalendarEvent(LocalDate.of(2021, 1, 4), LocalTime.of(14, 0), LocalTime.of(14, 20), "Test 11/11 14:00-14:20"));
-    	System.out.println("JFrame:"+frame.getBackground());
-    	
-    	frame.setLayout(new BorderLayout());
-    	frame.add(p);
-    	frame.setSize(500, 400);
-    	frame.setVisible(true);
-    	frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-	}
 }
 
 abstract class WidgetsOutline extends JPanel{

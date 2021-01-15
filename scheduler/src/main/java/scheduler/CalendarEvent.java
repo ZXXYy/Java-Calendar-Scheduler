@@ -13,31 +13,14 @@ public class CalendarEvent {
     private LocalTime start;
     private LocalTime end;
     private String text;
-    private String locaction;
+    private String location;
     private ArrayList<String> invitor;
     private String notes;
-    
-    public String getLocaction() {
-		return locaction;
-	}
-
-	public void setLocaction(String locaction) {
-		this.locaction = locaction;
-	}
-
-	public String getNotes() {
-		return notes;
-	}
-
-	public void setNotes(String notes) {
-		this.notes = notes;
-	}
-
 	private Color color;
 
     public CalendarEvent(LocalDate date, LocalTime start, LocalTime end, String text) {
         this(date, start, end, text, DEFAULT_COLOR);
-        invitor = new ArrayList<String>();
+        
     }
 
     public CalendarEvent(LocalDate date, LocalTime start, LocalTime end, String text, Color color) {
@@ -46,6 +29,9 @@ public class CalendarEvent {
         this.end = end;
         this.text = text;
         this.color = color;
+        invitor = new ArrayList<String>();
+        location = new String("添加位置");
+        notes = new String("添加备注");
     }
 
     public LocalDate getDate() {
@@ -88,6 +74,22 @@ public class CalendarEvent {
         return color;
     }
     
+    public String getLocation() {
+		return location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
+	}
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
+	}
+
     public void addInvitors(String name) {
     	invitor.add(name);
     }
