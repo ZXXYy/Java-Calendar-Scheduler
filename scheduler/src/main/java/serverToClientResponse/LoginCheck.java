@@ -12,40 +12,51 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import scheduler.CalendarEvent;
 
 public class LoginCheck implements Runnable {
 	
-	private Socket socket;
+	private ObjectOutputStream toClient;
 	private Connection dbConection;
 	private String name;
 	private String password;
+	private ReadWriteLock lock;
 	
-	public LoginCheck(Socket socket,Connection dbConnection,String name,String password) {
-		this.socket = socket;
+	public LoginCheck(ObjectOutputStream toClient,Connection dbConection,String name,String password, ReadWriteLock lock) {
+		this.toClient = toClient;
 		this.dbConection = dbConection;
 		this.name =name;
 		this.password = password;
+		this.lock = lock;
 	}
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
 		try {
-			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-			ObjectOutputStream objOut = new ObjectOutputStream(socket.getOutputStream());
-			String sql1="select * from User where user_name == ?";
+			
+			String sql1="select * from User where name == ?";
 			PreparedStatement ptmt=dbConection.prepareStatement(sql1.toString());
 			ptmt.setString(1, name);
 			ResultSet rs=ptmt.executeQuery();
 			if(rs.next()) {
 				if(rs.getString("password").equals(password)) {
-					 out.writeBytes("Successfully Login!" + "\n\r");
-					 out.flush();
+					toClient.writeObject("Successfully Login!");
+					toClient.flush();
+					lock.readLock().lock();
+					try {
 					 sql1="select * from CalendarEvent where owner == ?";
 					 ptmt=dbConection.prepareStatement(sql1.toString());
 					 ptmt.setString(1, name);
 					 rs = ptmt.executeQuery();
+					}catch(SQLException e) {
+						e.printStackTrace();
+					}finally {
+						lock.readLock().unlock();
+					}
 					 ArrayList<CalendarEvent>  events = new ArrayList<>();
 					 while(rs.next()) {
 						 String startTime = rs.getString("startTime");
@@ -58,35 +69,49 @@ public class LoginCheck implements Runnable {
 						 String colorString = rs.getString("color");
 						 int  pending = rs.getInt("pendingReact");
 						 
+						 
 						 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 						 LocalDateTime dateTime = LocalDateTime.parse(startTime, formatter);
 						 LocalDate day = dateTime.toLocalDate();
 						 LocalTime start = dateTime.toLocalTime();
 						 dateTime = LocalDateTime.parse(endTime, formatter);
 						 LocalTime end = dateTime.toLocalTime();
-						
-						 String []temp =colorString.split(",");
-						 Color color = new Color(Integer.valueOf(temp[0]),Integer.valueOf(temp[1]),Integer.valueOf(temp[2]));
+						 String []temp;
+						 Color color ;
+						 if(colorString!=null) {
+							 temp =colorString.split(",");
+							 color = new Color(Integer.valueOf(temp[0]),Integer.valueOf(temp[1]),Integer.valueOf(temp[2]));
+						 }
+						 else color = new Color(63,181,245);
 						 CalendarEvent  event = new CalendarEvent(day, start, end, text, color);
 						 event.setLocation(location);
 						 event.setNotes(notes);
-						 temp = invitorString.split(",");
-						 Collections.addAll(event.getInvitors(), temp);
-						 temp = pendInvitorString.split(",");
-						 Collections.addAll(event.getPendingInvitors(), temp);
+						 if(invitorString!=null&& !invitorString.equals("")) {
+							 temp = invitorString.split(",");
+							 Collections.addAll(event.getInvitors(), temp);
+						 }
+						 if(pendInvitorString!=null && !pendInvitorString.equals("")) {
+							 temp = pendInvitorString.split(",");
+							 Collections.addAll(event.getPendingInvitors(), temp);
+						 }
 						 if(pending==0) event.setPending(false);
 						 else event.setPending(true);
-						 objOut.writeObject(event);
+						 toClient.writeObject(event);
+						 System.out.println("[Server] sending event");
 					 }
+					 
+					 toClient.writeObject("All Events send!");
+					 System.out.println("[Server] Write event");
+					 
 				}
 				else {
-					out.writeBytes("Wrong password!" + "\n\r");
-					out.flush();
+					toClient.writeObject("Wrong password!");
+					toClient.flush();
 				}
 			}
 			else {
-				out.writeBytes("No such user!" + "\n\r");
-				out.flush();
+				toClient.writeObject("No such user!");
+				toClient.flush();
 			}
 			
 		} catch (IOException e) {

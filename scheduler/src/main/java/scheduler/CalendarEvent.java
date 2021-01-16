@@ -1,13 +1,19 @@
 package scheduler;
 
 import java.awt.*;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
-public class CalendarEvent {
+public class CalendarEvent  implements Serializable{
 
-    private static final Color DEFAULT_COLOR = Color.PINK;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private static final Color DEFAULT_COLOR = Color.PINK;
 
     private LocalDate date;
     private LocalTime start;

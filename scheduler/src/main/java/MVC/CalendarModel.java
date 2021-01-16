@@ -102,6 +102,12 @@ public class CalendarModel {
 	}
 	public void addEvents(CalendarEvent event) {
 		events.add(event);
+		processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "showEvent"));
+	}
+	public void addEventsList(ArrayList<CalendarEvent> eventList) {
+		for(CalendarEvent event:eventList)
+			events.add(event);
+		processEvent(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "showEvent"));
 	}
 	public void setEvents(ArrayList<CalendarEvent> events) {
 		this.events = events;

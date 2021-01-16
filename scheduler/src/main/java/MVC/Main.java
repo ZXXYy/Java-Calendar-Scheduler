@@ -3,6 +3,8 @@ package MVC;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -23,25 +25,92 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.OverlayLayout;
 import javax.swing.WindowConstants;
 
+import ClientToServerResponse.GetEventsFromServer;
+import ClientToServerResponse.LoginToServer;
+import ClientToServerResponse.SendEventsToServer;
 import scheduler.CalendarEvent;
 import scheduler.ClientInfo;
+import scheduler.SharedVariable;
 import scheduler.Week;
+import server.HandleAClient;
 import serverToClientResponse.LoginCheck;
 
-public class Main {
+public class Main implements ActionListener{
+	public static Object lock = new Object();
 	private CalendarController controller;
 	private CalendarModel model;
 	private CalendarView view;
+	private String username;
 	private static JFrame frm = new JFrame();
-	private static JLayeredPane layeredPane = frm.getLayeredPane();
-	private  Socket socket;
-	private  static boolean flag = false;
+	private static JLayeredPane layeredPane;
+	private static Socket socket;
+	private static ObjectOutputStream toServer;
+	private static ObjectInputStream fromServer;
+	private final static SharedVariable control = new SharedVariable();
 	public static void main(String args[] ) {
+
+		frm.setSize(300,200);
+		frm.setLayout(null);
+		JPanel JP1 = new  JPanel();
+		JPanel JP2 = new  JPanel();
+		JLabel userJL =  new JLabel("用户名");
+		JLabel pwJL = new JLabel("密码");
+		JTextField userJTF = new JTextField();
+		JPasswordField pwJTF = new JPasswordField();
+		JButton loginJB = new JButton("登录");
 		
+		JP1.setLayout(new GridLayout(1,2));
+		JP1.setBounds(20,0,300,50);
+		JP2.setLayout(new GridLayout(1,2));
+		JP2.setBounds(20,55,300,50);
+		JP1.add(userJL);
+		JP1.add(userJTF);
+		JP2.add(pwJL);
+		JP2.add(pwJTF);
+		loginJB.setBounds(0,120,300,50);
+		frm.add(JP2);
+		frm.add(JP1);
+		frm.add(loginJB);
+		frm.setVisible(true);
+	    frm.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		loginJB.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println("[Client] ButtonClicked");
+				InetAddress address;
+				try {
+					address = InetAddress.getLocalHost();
+					socket =  new Socket(address, 1975);
+					System.out.println("[Client] Connected to Server");
+					toServer = new  ObjectOutputStream(socket.getOutputStream());
+					fromServer = new ObjectInputStream(socket.getInputStream());
+				} catch (UnknownHostException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				// TODO Auto-generated method stub
+				new Thread(new LoginToServer(fromServer, toServer, socket, userJTF.getText(),pwJTF.getText(), control)).start();
+			}
+			
+			
+		});
+		
+		while(!control.flag);
+		control.flag =  false;
 		Main m = new Main();
-		while(!flag);
+		m.username = userJTF.getText();
+		
+	
+		frm.dispose();
+		frm = new JFrame();
+		layeredPane = frm.getLayeredPane();
 		frm.setSize(1000,750);
 		m.controller.setBounds(0,0,1000,700);
 		m.view.setBounds(0, 0, 1000, 700);
@@ -50,107 +119,72 @@ public class Main {
 		m.view.setOpaque(false);
 		layeredPane.add(m.controller,JLayeredPane.DEFAULT_LAYER);
         layeredPane.add(m.view,JLayeredPane.MODAL_LAYER);
-		
-//		frm.add(view);
+
 		frm.setVisible(true);
 	    frm.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+	    
+	    GetEventsFromServer.getEventsFromServer(fromServer, toServer, socket, m.model);
+	    frm.addWindowListener(new WindowListener() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+ 
+            }
+ 
+            @Override
+            public void windowClosing(WindowEvent e) {
+            	System.out.println("Window is closing!");
+            	new Thread(new SendEventsToServer(m.model.getEvents(), m.username)).start();
+            	System.out.println("Window is closing!");
+            }
+ 
+            @Override
+            public void windowClosed(WindowEvent e) {
+            	
+            }
+ 
+            @Override
+            public void windowIconified(WindowEvent e) {
+            }
+ 
+            @Override
+            public void windowDeiconified(WindowEvent e) {
+ 
+            }
+ 
+            @Override
+            public void windowActivated(WindowEvent e) {
+ 
+            }
+            
+            @Override
+            public void windowDeactivated(WindowEvent e) {
+ 
+            }
+        });
+
+
+	    frm.repaint();
 	}
 	
 	public Main() {
-		InetAddress address;
-		try {
-			address = InetAddress.getLocalHost();
-			socket =  new Socket(address, 1978);
-			System.out.println("[Client] Connected to Server");
-			frm.setSize(300,400);
-			frm.setLayout(new GridLayout(2,1));
-			JPanel JP = new  JPanel();
-			
-			JLabel userJL =  new JLabel("用户名");
-			JLabel pwJL = new JLabel("密码");
-			JTextField userJTF = new JTextField();
-			JTextField pwJTF = new JPasswordField();
-			JButton loginJB = new JButton("登录");
-			
-			JP.setLayout(new GridLayout(2,2));
-			JP.add(userJL);
-			JP.add(userJTF);
-			JP.add(pwJL);
-			JP.add(pwJTF);
-			frm.add(JP);
-			frm.add(loginJB);
-			frm.setVisible(true);
-		    frm.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		    
-			loginJB.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					// TODO Auto-generated method stub
-					while(true) {
-					try {
-						DataOutputStream toServer2 = new DataOutputStream(socket.getOutputStream());
-						ObjectOutputStream toServer = new  ObjectOutputStream(socket.getOutputStream());
-						BufferedReader fromServerString = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-						toServer2.writeBytes("LOGIN\n");
-						toServer2.flush();
-						String username = userJTF.getText();
-						String password  = pwJTF.getText();
-						ClientInfo c = new ClientInfo("0", username, password);
-						toServer.writeObject(c);
-						String line = fromServerString.readLine();
-						if(line.compareTo("Successfully Login!")==0) {
-							frm.removeAll();
-							Week week = new Week(LocalDate.now());
-							LocalDate startDay = week.getDay(DayOfWeek.MONDAY);
-							model = new CalendarModel(startDay);
-							
-							view = new CalendarView();
-							controller = new CalendarController();
-							
-							view.setModel(model);
-							view.setController(controller);
-							controller.setModel(model);
-							while(ois.available()!=-1) {
-								CalendarEvent event =(CalendarEvent)ois.readObject();
-								model.addEvents(event);
-							}
-							flag = true;
-							break;
-						}else if(line.compareTo("Wrong password!")==0 || line.compareTo("No such user!")==0) {
-							JOptionPane.showMessageDialog(null, "用户名或密码错误", "提示",JOptionPane.PLAIN_MESSAGE); 
-						}
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (ClassNotFoundException e) {
-						System.out.println("[Client] Get event erro");
-						e.printStackTrace();
-					}
-				}
-				}
-			
-			});
-			
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.out.println("[Client] Connection Error");
-			e.printStackTrace();
-		}
-		//model.addActionListener(this);
+		
+		Week week = new Week(LocalDate.now());
+		LocalDate startDay = week.getDay(DayOfWeek.MONDAY);
+		model = new CalendarModel(startDay);
+		
+		view = new CalendarView();
+		controller = new CalendarController();
+		
+		view.setModel(model);
+		view.setController(controller);
+		controller.setModel(model);
 	}
 
-//	@Override
-//	public void actionPerformed(ActionEvent e) {
-//		// TODO Auto-generated method stub
-//		if(e.getActionCommand().equals("addEvent")) {
-//			System.out.println("Here");
-//			
-//			layeredPane.repaint();
-//		}
-//	}
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		// TODO Auto-generated method stub
+		
+		
+		
+	}
 }

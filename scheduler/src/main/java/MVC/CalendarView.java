@@ -27,7 +27,11 @@ public class CalendarView extends JPanel implements ActionListener{
 	private CalendarController controller;
 	public CalendarView() {
 		
-		
+	}
+	public CalendarView(CalendarModel newModel,CalendarController newController) {
+		setModel(newModel);
+		setController(newController);
+		displayEvent(model.getEvents(), null);
 	}
 	public void setModel(CalendarModel newModel) {
 		model = newModel;
@@ -86,7 +90,8 @@ public class CalendarView extends JPanel implements ActionListener{
 		if( e.getActionCommand().equals("showHeadersNextMonth")||
 			e.getActionCommand().equals("showHeadersNextWeek") ||
 			e.getActionCommand().equals("showHeadersPreWeek")  ||
-			e.getActionCommand().equals("showHeadersPreMonth") 
+			e.getActionCommand().equals("showHeadersPreMonth") ||
+			e.getActionCommand().equals("showEvent")
 			) {
 			ArrayList<CalendarEvent> events = model.getEvents();
 			this.removeAll();
@@ -225,7 +230,7 @@ public class CalendarView extends JPanel implements ActionListener{
         	eventTime.setOpaque(false);
         	
         	
-//        	System.out.println(event);
+        	System.out.println(event);
         	eventJP.setBounds(x,y,width,height);
         	eventJP.setLayout(new GridLayout(2,1));
         	eventJP.add(eventTime);

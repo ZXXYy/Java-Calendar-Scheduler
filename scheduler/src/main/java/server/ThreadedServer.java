@@ -5,13 +5,17 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import JDBC.SQLiteJDBC;
 
 public class ThreadedServer {
 
-    static final int PORT = 1978;
-    private int clientNo  =  0;
+    static final int PORT = 1975;
+    protected static int clientNo  =  0;
+    private static ReadWriteLock lock = new ReentrantReadWriteLock();
     public static void main(String args[]) {
     	ThreadedServer server = new ThreadedServer();
         ServerSocket serverSocket = null;
@@ -39,7 +43,7 @@ public class ThreadedServer {
             System.out.println("[Server] Connected to Client"+server.clientNo+
             		"'s IP address is"+inetAddress.getHostAddress());
             // new thread for a client
-            new Thread(new  HandleAClient(socket, dbConnection)).start();
+            new Thread(new  HandleAClient(socket, dbConnection, lock)).start();
         }
     }
 }
