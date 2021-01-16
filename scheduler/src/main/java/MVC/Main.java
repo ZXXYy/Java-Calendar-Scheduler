@@ -102,9 +102,10 @@ public class Main implements ActionListener{
 			
 		});
 		
+		Main m = new Main();
+		
 		while(!control.flag);
 		control.flag =  false;
-		Main m = new Main();
 		m.username = userJTF.getText();
 		
 	
@@ -133,7 +134,15 @@ public class Main implements ActionListener{
             @Override
             public void windowClosing(WindowEvent e) {
             	System.out.println("Window is closing!");
-            	new Thread(new SendEventsToServer(m.model.getEvents(), m.username)).start();
+            	Thread A = new Thread(new SendEventsToServer(m.model.getEvents(), m.username));
+            	A.start();
+            	// wait the events
+            	try {
+					A.join();
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
             	System.out.println("Window is closing!");
             }
  

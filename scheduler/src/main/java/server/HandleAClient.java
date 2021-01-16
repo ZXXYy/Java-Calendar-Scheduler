@@ -38,6 +38,7 @@ public class HandleAClient implements Runnable {
         	fromClient = new ObjectInputStream(socket.getInputStream());
         	toClient  = new ObjectOutputStream(socket.getOutputStream());
         } catch (IOException e) {
+        	e.printStackTrace();
             return;
         }
         while (true) {
@@ -62,6 +63,7 @@ public class HandleAClient implements Runnable {
                 } else if(line.equalsIgnoreCase("UPDATE")) {
                 	while(fromClient.available()!=-1) {
                 		String username = (String)fromClient.readObject();
+                		System.out.println("username = "+username);
                 		while(fromClient.available()==-1);
                 		ArrayList<CalendarEvent> events =(ArrayList<CalendarEvent>)fromClient.readObject();
                 		System.out.println("[Server] receieved Events!");

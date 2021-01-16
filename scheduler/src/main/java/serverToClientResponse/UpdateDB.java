@@ -1,5 +1,6 @@
 package serverToClientResponse;
 
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,7 +22,7 @@ public class UpdateDB implements Runnable{
 	private ArrayList<CalendarEvent> events;
 	private ReadWriteLock lock;
 	
-	public UpdateDB(ObjectOutputStream toClient,Connection dbConection,ArrayList<CalendarEvent> events, String username, ReadWriteLock  Lock) {
+	public UpdateDB(ObjectOutputStream toClient,Connection dbConection,ArrayList<CalendarEvent> events, String username, ReadWriteLock  lock) {
 		this.toClient = toClient;
 		this.dbConection =dbConection;
 		this.events = events;
@@ -37,12 +38,12 @@ public class UpdateDB implements Runnable{
 		PreparedStatement ptmt;
 		try {
 			lock.writeLock().lock();
-			String sql1="delete * from CalendarEvent where owner == ?";
+			String sql1="delete from CalendarEvent where owner == ?";
 			ptmt = dbConection.prepareStatement(sql1.toString());
 			ptmt.setString(1, username);
 			int deletNum=ptmt.executeUpdate();
 			dbConection.commit();
-			System.out.println("[Server] delete"+deletNum);
+			System.out.println("[Server] delete "+deletNum);
 			sql1 = "insert into CalendarEvent(id, owner, startTime, endTime, eventName, location, notes, invitor, color, pendingInvitor, pendingReact)"+
 					"values(?,?,?,?,?,?,?,?,?,?,?)";
 			ptmt = dbConection.prepareStatement(sql1.toString());
@@ -89,16 +90,21 @@ public class UpdateDB implements Runnable{
 				ptmt.setString(9, color);
 				ptmt.setString(10, pedningInvitorStringBuff.toString());
 				ptmt.setInt(11,  0);
-				
+				int insertNum = ptmt.executeUpdate();
+				System.out.println("[Server] insert "+insertNum);
 			}
 			dbConection.commit();
+			toClient.writeObject("update DB finised!");
 		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}finally {
 			lock.writeLock().unlock();
 		}
 		
-		
+		return;
 	}
 }

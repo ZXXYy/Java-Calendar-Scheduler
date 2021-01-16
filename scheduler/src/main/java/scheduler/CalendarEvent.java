@@ -38,6 +38,7 @@ public class CalendarEvent  implements Serializable{
         this.text = text;
         this.color = color;
         invitor = new ArrayList<String>();
+        pendingInvitor = new ArrayList<String>();
         location = new String("添加位置");
         notes = new String("添加备注");
     }

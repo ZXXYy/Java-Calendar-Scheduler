@@ -29,14 +29,26 @@ public class SendEventsToServer implements Runnable{
 			ObjectOutputStream toServer = new  ObjectOutputStream(socket.getOutputStream());
 			ObjectInputStream fromServer = new ObjectInputStream(socket.getInputStream());
 			toServer.writeObject("UPDATE");
+			toServer.flush();
 			System.out.println("[Client] Send Update");
 			toServer.writeObject(username);
+			toServer.flush();
 			toServer.writeObject(events);
-			
+			toServer.flush();
+			String line = (String)fromServer.readObject();
+			if(line.equals("update DB finised!")) {
+				toServer.writeObject("QUIT");
+				toServer.close();
+				fromServer.close();
+				socket.close();
+			}
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
